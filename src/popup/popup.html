@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>YouTube Propaganda Analyzer</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="title">Propaganda Analyzer</div>
+      </header>
+
+      <main class="main">
+        <div class="action-row">
+          <button id="analyzeBtn" class="material-button" aria-label="Analyze video">Analyze</button>
+          <div id="loader" class="loader" aria-hidden="true" style="display:none"></div>
+        </div>
+
+        <div id="resultsContainer" class="results" style="display:none">
+          <div class="score-row">
+            <div class="score-label">Bias Score</div>
+            <div id="biasScore" class="score-value">0</div>
+          </div>
+
+          <div class="explanation-card">
+            <div class="explanation" id="explanation"> </div>
+          </div>
+
+          <div class="tags-section">
+            <div class="tags-title">Identified Patterns</div>
+            <div id="tags" class="tags-list"></div>
+          </div>
+
+          <div class="reanalyze-section">
+            <button id="reanalyzeBtn" class="material-button secondary">Re-analyze</button>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="error" style="display:none"></div>
+      </main>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

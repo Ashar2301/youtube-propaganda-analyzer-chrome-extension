@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Propaganda Analyzer - Starter",
+  "description": "Starter boilerplate for the YouTube Propaganda Analyzer Chrome extension.",
+  "version": "0.1.0",
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": ["*://*.youtube.com/*", "https://your-api-domain.com/*"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "YouTube Propaganda Analyzer"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["src/contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icons/icon48.svg",
+    "128": "icons/icon128.svg"
+  }
+}
