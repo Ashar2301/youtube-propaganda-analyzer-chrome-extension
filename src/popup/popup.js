@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loader = document.getElementById('loader');
   const resultsContainer = document.getElementById('resultsContainer');
   const biasScoreEl = document.getElementById('biasScore');
+  const labelEl = document.getElementById('label');
   const explanationEl = document.getElementById('explanation');
   const tagsEl = document.getElementById('tags');
   const errorEl = document.getElementById('errorMessage');
@@ -23,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     errorEl.style.display = 'none';
     resultsContainer.style.display = 'none';
     biasScoreEl.textContent = '';
+    labelEl.textContent = '';
     explanationEl.textContent = '';
     tagsEl.innerHTML = '';
   }
@@ -52,11 +54,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function displayResults(data) {
     const payload = data?.data || data;
-    const biasScore = payload?.biasAnalysis?.bias_score ?? 0;
-    const explanation = payload?.simplifiedResult?.explanation || '';
-    const tags = payload?.simplifiedResult?.tags || [];
+    const biasScore = `${((payload?.bias_result?.bias_score ?? 0) * 100).toFixed(2)} %`;
+    const label = payload?.bias_result?.analysis?.top_prediction_label || 'N/A';
+    const explanation = payload?.simplified_result?.explanation || '';
+    const tags = payload?.simplified_result?.tags || [];
 
-    biasScoreEl.textContent = String(biasScore);
+    biasScoreEl.textContent = biasScore;
+    labelEl.textContent = label;
     explanationEl.textContent = explanation;
     tagsEl.innerHTML = '';
 
@@ -69,7 +73,58 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
 
-  async function analyzeCurrentTab() {
+  // Function to check current analysis state
+  async function checkAnalysisState() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return null;
+
+    return new Promise(resolve => {
+      chrome.runtime.sendMessage({
+        type: 'GET_ANALYSIS_STATE',
+        tabId: tab.id
+      }, resolve);
+    });
+  }
+
+  // Start polling for analysis updates
+  let pollInterval = null;
+  function startPolling() {
+    if (pollInterval) return;
+
+    pollInterval = setInterval(async () => {
+      const state = await checkAnalysisState();
+      if (!state) return;
+
+      if (state.status === 'complete') {
+        clearInterval(pollInterval);
+        pollInterval = null;
+        setLoading(false);
+        displayResults(state.result);
+      } else if (state.status === 'error') {
+        clearInterval(pollInterval);
+        pollInterval = null;
+        setLoading(false);
+        showError(state.error);
+      }
+      // Continue polling if status is 'loading'
+    }, 1000);
+  }
+
+  // Check state when popup opens
+  async function checkCurrentState() {
+    const state = await checkAnalysisState();
+    if (state?.status === 'loading') {
+      setLoading(true);
+      startPolling();
+    } else if (state?.status === 'complete') {
+      displayResults(state.result);
+    } else if (state?.status === 'error') {
+      showError(state.error);
+    }
+  }
+  checkCurrentState();
+
+  async function analyzeCurrentTab(skip_cache = false) {
     resetUI();
     setLoading(true);
 
@@ -80,33 +135,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         setLoading(false);
         return;
       }
-
-      chrome.tabs.sendMessage(tab.id, { type: 'ANALYZE' }, async (response) => {
-
-        setLoading(false);
-
+      
+      chrome.tabs.sendMessage(tab.id, { type: 'ANALYZE', tabId: tab.id, skip_cache: skip_cache }, response => {
         if (chrome.runtime.lastError) {
           showError('Extension content script not available on this page.');
+          setLoading(false);
           return;
         }
 
-        if (!response) {
-          showError('No response from analyzer.');
-          return;
+        if (response?.status === 'started') {
+          // Analysis started in background, start polling for updates
+          startPolling();
+        } else {
+          setLoading(false);
+          showError('Failed to start analysis');
         }
-
-        if (response.error) {
-          showError('Analysis error: ' + response.error);
-          return;
-        }
-
-
-        if (tab.url) {
-          const key = `analysis_${tab.url}`;
-          await chrome.storage.local.set({ [key]: response });
-        }
-
-        displayResults(response);
       });
     } catch (err) {
       setLoading(false);
@@ -115,6 +158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
 
-  analyzeBtn.addEventListener('click', analyzeCurrentTab);
-  reanalyzeBtn.addEventListener('click', analyzeCurrentTab);
+  analyzeBtn.addEventListener('click', () => analyzeCurrentTab(false));
+  reanalyzeBtn.addEventListener('click', () => analyzeCurrentTab(true));
 });

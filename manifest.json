@@ -22,5 +22,8 @@
   "icons": {
     "48": "icons/icon48.svg",
     "128": "icons/icon128.svg"
+  },
+  "backend_config":{
+    "apiUrl": "http://13.232.109.86/analyze"
   }
 }
