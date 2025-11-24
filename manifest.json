@@ -3,7 +3,7 @@
   "name": "YouTube Propaganda Analyzer",
   "description": "AI tool to expose propaganda and bias in YouTube content.",
   "version": "0.1.0",
-  "permissions": ["storage", "scripting", "activeTab"],
+  "permissions": ["storage", "activeTab"],
   "host_permissions": ["*://*.youtube.com/*", "https://your-api-domain.com/*"],
   "background": {
     "service_worker": "src/background.js"
@@ -23,7 +23,7 @@
     "48": "icons/icon48.svg",
     "128": "icons/icon128.svg"
   },
-  "backend_config":{
+  "backend_config": {
     "apiUrl": "http://13.232.109.86/analyze"
   }
 }
