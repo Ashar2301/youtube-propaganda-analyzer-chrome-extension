@@ -1,5 +1,10 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Set logo from manifest
+  const manifest = chrome.runtime.getManifest();
+  const logoImg = document.getElementById('logoImg');
+  logoImg.src = chrome.runtime.getURL(manifest.icons['128']);
+
   const analyzeBtn = document.getElementById('analyzeBtn');
   const reanalyzeBtn = document.getElementById('reanalyzeBtn');
   const loader = document.getElementById('loader');
