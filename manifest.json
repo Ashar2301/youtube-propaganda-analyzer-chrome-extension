@@ -4,7 +4,7 @@
   "description": "AI tool to expose propaganda and bias in YouTube content.",
   "version": "0.1.2",
   "permissions": ["storage", "activeTab"],
-  "host_permissions": ["*://*.youtube.com/*", "http://13.232.109.86/*"],
+  "host_permissions": ["*://*.youtube.com/*", "https://carlos-anime-yearly-galleries.trycloudflare.com/*"],
   "background": {
     "service_worker": "src/background.js"
   },
@@ -24,6 +24,6 @@
     "128": "icons/YTPA_128.svg"
   },
   "backend_config": {
-    "apiUrl": "http://13.232.109.86/analyze"
+    "apiUrl": "https://carlos-anime-yearly-galleries.trycloudflare.com/analyze"
   }
 }
